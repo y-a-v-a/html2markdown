@@ -1,0 +1,26 @@
+{
+  "name": "html2markdown-claude-plugin",
+  "version": "1.0.0",
+  "description": "Claude Code plugin to fetch URLs and convert HTML to markdown using Turndown",
+  "main": "hook-bash.js",
+  "scripts": {
+    "test": "node scripts/fetch-html.js https://example.com"
+  },
+  "keywords": [
+    "html",
+    "markdown",
+    "converter",
+    "claude",
+    "claude-code",
+    "plugin",
+    "turndown"
+  ],
+  "author": "Vincent",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "turndown": "^7.2.0"
+  }
+}

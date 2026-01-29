@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Local settings
+.claude/settings.local.json
+
+# Debug logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
