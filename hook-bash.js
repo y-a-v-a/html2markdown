@@ -1,91 +1,54 @@
 #!/usr/bin/env node
 
-const { convert } = require('./lib/converter');
+const { looksLikeHTML } = require('./lib/detect');
 
 /**
  * Read JSON input from stdin
  */
-function readStdin() {
-  return new Promise((resolve, reject) => {
-    let data = '';
-
-    process.stdin.on('data', chunk => {
-      data += chunk;
-    });
-
-    process.stdin.on('end', () => {
-      try {
-        resolve(JSON.parse(data));
-      } catch (error) {
-        reject(new Error(`Failed to parse JSON: ${error.message}`));
-      }
-    });
-
-    process.stdin.on('error', reject);
-  });
+async function readStdin() {
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
-/**
- * Check if content is HTML
- */
-function isHTML(content) {
-  if (typeof content !== 'string') {
-    return false;
-  }
-
-  const normalized = content.trim().toLowerCase().slice(0, 500);
-  return (
-    normalized.startsWith('<!doctype html') ||
-    normalized.startsWith('<!doctype html public') ||
-    normalized.includes('<html') ||
-    normalized.includes('<head>') ||
-    normalized.includes('<body>')
-  );
+function formatSize(text) {
+  const bytes = Buffer.byteLength(text);
+  return bytes < 1024 ? `${bytes} bytes` : `${(bytes / 1024).toFixed(1)} KB`;
 }
 
 /**
  * Main hook logic
  */
 async function main() {
-  try {
-    const input = await readStdin();
+  const input = await readStdin();
 
-    // Only process Bash tool calls with curl commands
-    if (input.tool_name !== 'Bash') {
-      return; // Pass through
-    }
-
-    const command = input.tool_input?.command || '';
-    if (!command.includes('curl')) {
-      return; // Pass through
-    }
-
-    // Extract stdout from tool response
-    const stdout = input.tool_response?.stdout || '';
-
-    // Check if it's HTML
-    if (!isHTML(stdout)) {
-      return; // Pass through
-    }
-
-    // Convert to markdown
-    const markdown = convert(stdout);
-
-    // Return additional context
-    const output = {
-      hookSpecificOutput: {
-        hookEventName: 'PostToolUse',
-        additionalContext: `HTML detected and converted to Markdown:\n\n${markdown}`
-      }
-    };
-
-    console.log(JSON.stringify(output));
-
-  } catch (error) {
-    // Log error to stderr but don't fail the hook
-    console.error(`Hook error: ${error.message}`);
-    // Pass through (no output to stdout)
+  if (input.tool_name !== 'Bash' || !/\bcurl\b/.test(input.tool_input?.command || '')) {
+    return;
   }
+
+  const response = input.tool_response;
+  if (!response || !looksLikeHTML(response.stdout)) {
+    return;
+  }
+
+  const { convert } = require('./lib/converter');
+  const markdown = convert(response.stdout);
+
+  const output = {
+    hookSpecificOutput: {
+      hookEventName: 'PostToolUse',
+      additionalContext:
+        `html2markdown converted ${formatSize(response.stdout)} of HTML output to ${formatSize(markdown)} of Markdown. ` +
+        'For the raw HTML, save it with `curl -o <file>` and read the file with the Read tool.',
+      updatedToolOutput: { ...response, stdout: markdown }
+    }
+  };
+
+  process.stdout.write(JSON.stringify(output));
 }
 
-main();
+main().catch(error => {
+  console.error(`html2markdown hook: ${error.message}`);
+});

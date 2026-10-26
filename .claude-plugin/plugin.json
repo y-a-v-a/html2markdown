@@ -1,15 +1,12 @@
 {
   "name": "html2markdown",
   "description": "Fetch URLs and convert HTML to markdown using Turndown. Use as alternative to WebFetch when you need full content without summarization.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Vincent"
   },
   "homepage": "https://github.com/yourusername/html2markdown",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/html2markdown.git"
-  },
+  "repository": "https://github.com/yourusername/html2markdown.git",
   "license": "ISC",
   "keywords": ["html", "markdown", "converter", "turndown", "fetch"]
 }

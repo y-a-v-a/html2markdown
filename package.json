@@ -1,10 +1,10 @@
 {
   "name": "html2markdown-claude-plugin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Claude Code plugin to fetch URLs and convert HTML to markdown using Turndown",
   "main": "hook-bash.js",
   "scripts": {
-    "test": "node scripts/fetch-html.js https://example.com"
+    "test": "node --test"
   },
   "keywords": [
     "html",
@@ -18,9 +18,11 @@
   "author": "Vincent",
   "license": "ISC",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
+    "@mixmark-io/domino": "^2.2.0",
+    "playwright-core": "^1.64.1",
     "turndown": "^7.2.0"
   }
 }
